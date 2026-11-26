@@ -1,0 +1,509 @@
+{
+  "info": {
+    "name": "Stockflow API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List products - success",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/products?search=&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List products - search filter",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/products?search=rose&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "search", "value": "rose" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List products - invalid page (400)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/products?page=0&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List products - limit too big (400)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/products?page=1&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "100" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add product - success",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"LT-013\",\n  \"name\": \"Lotus\",\n  \"price\": 45000,\n  \"stock\": 20,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Add product - duplicate SKU (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"LT-013\",\n  \"name\": \"Duplicate Lotus\",\n  \"price\": 10000,\n  \"stock\": 1,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Add product - missing SKU (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"No SKU Flower\",\n  \"price\": 10000\n}"
+            }
+          }
+        },
+        {
+          "name": "Add product - negative price (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"NEG-001\",\n  \"name\": \"Negative Price\",\n  \"price\": -100\n}"
+            }
+          }
+        },
+        {
+          "name": "Update product - success",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rose\",\n  \"price\": 30000,\n  \"stock\": 50,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Update product - not found (404)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/9999",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "9999"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghost\",\n  \"price\": 100,\n  \"stock\": 1,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Update product - invalid id (400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/abc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "abc"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghost\",\n  \"price\": 100,\n  \"stock\": 1,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete product - success",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/products/6",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "6"]
+            }
+          }
+        },
+        {
+          "name": "Delete product - has history (409)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1"]
+            }
+          }
+        },
+        {
+          "name": "Stock in - success",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1", "stock"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"in\",\n  \"qty\": 10,\n  \"note\": \"restock from supplier\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock out - success",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1", "stock"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"out\",\n  \"qty\": 5,\n  \"note\": \"sale\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock out - insufficient stock (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1", "stock"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"out\",\n  \"qty\": 99999,\n  \"note\": \"overdraw attempt\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock - invalid type (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/1/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1", "stock"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"sideways\",\n  \"qty\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Stock - product not found (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/9999/stock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "9999", "stock"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"in\",\n  \"qty\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Product movements - success",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/products/1/movements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "1", "movements"]
+            }
+          }
+        },
+        {
+          "name": "Product movements - invalid id (400)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/products/abc/movements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "abc", "movements"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create order - success",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"John Doe\",\n  \"items\": [\n    { \"sku\": \"RO-001\", \"qty\": 2 },\n    { \"sku\": \"TU-002\", \"qty\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Create order - insufficient stock (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"Jane Doe\",\n  \"items\": [\n    { \"sku\": \"RO-001\", \"qty\": 1 },\n    { \"sku\": \"OR-004\", \"qty\": 99999 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Create order - unknown SKU (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"Jane Doe\",\n  \"items\": [\n    { \"sku\": \"NOPE-999\", \"qty\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Create order - empty items (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"Jane Doe\",\n  \"items\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Create order - missing customer (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"sku\": \"RO-001\", \"qty\": 1 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Create order - invalid qty (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"Jane Doe\",\n  \"items\": [\n    { \"sku\": \"RO-001\", \"qty\": 0 }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get order - success",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/orders/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get order - not found (404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/orders/9999",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "9999"]
+            }
+          }
+        },
+        {
+          "name": "Cancel order - success",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/orders/1/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Cancel order - already cancelled (409)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/orders/1/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Cancel order - not found (404)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/orders/9999/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "9999", "cancel"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

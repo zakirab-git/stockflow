@@ -64,6 +64,7 @@ func (r *OrderRepo) GetProductBySKUForUpdate(c context.Context, sku string) (p m
 	if tx := utils.ExtractTx(c); tx != nil {
 		getter = tx
 	}
+
 	err = getter.GetContext(c, &p, getProductBySKUForUpdateQuery, sku)
 	return p, err
 }
@@ -137,6 +138,7 @@ func (r *OrderRepo) RestoreStock(c context.Context, sku string, qty int) error {
 	if tx := utils.ExtractTx(c); tx != nil {
 		getter = tx
 	}
+
 	_, err := getter.ExecContext(c, restoreStockQuery, sku, qty)
 	return err
 }
