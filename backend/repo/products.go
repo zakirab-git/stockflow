@@ -72,6 +72,12 @@ const (
 	updateStockQuery = `
 		UPDATE products SET stock = $2 WHERE id = $1
 	`
+	getMovementsQuery = `
+		SELECT id, product_id, type, qty, note, created_at
+		FROM stock_movements
+		WHERE product_id = $1
+		ORDER BY created_at DESC
+	`
 )
 
 func (r *ProductRepo) GetProducts(c context.Context, filter ProductFilter) (products []model.Product, total int, err error) {
@@ -153,4 +159,9 @@ func (r *ProductRepo) UpdateStock(c context.Context, productID int, stock int) e
 	}
 	_, err := getter.ExecContext(c, updateStockQuery, productID, stock)
 	return err
+}
+
+func (r *ProductRepo) GetMovements(c context.Context, productID int) (movements []model.StockMovement, err error) {
+	err = r.db.SelectContext(c, &movements, getMovementsQuery, productID)
+	return movements, err
 }

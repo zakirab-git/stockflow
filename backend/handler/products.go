@@ -15,6 +15,7 @@ type ProductUsecase interface {
 	UpdateProduct(c context.Context, id int, req dto.UpdateProductRequest) (res dto.ProductResponse, err error)
 	DeleteProduct(c context.Context, id int) error
 	UpdateStock(c context.Context, id int, req dto.UpdateStockRequest) (res dto.MovementResponse, available int, err error)
+	GetProductMovement(c context.Context, id int) (res []dto.MovementResponse, err error)
 }
 
 type Handlers struct {
@@ -142,4 +143,19 @@ func (h *ProductHandler) UpdateStock(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, movement)
+}
+
+func (h *ProductHandler) GetProductMovement(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
+	movements, err := h.usecase.GetProductMovement(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": movements})
 }

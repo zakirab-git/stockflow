@@ -1,11 +1,13 @@
 package dto
 
+// QUery params
 type ProductListRequest struct {
 	Search *string `form:"search"`
 	Page   int     `form:"page,default=1" binding:"min=1"`
 	Limit  int     `form:"limit,default=10" binding:"min=1,max=20"`
 }
 
+// Request body
 type AddProductRequest struct {
 	SKU      string `json:"sku" binding:"required"`
 	Name     string `json:"name" binding:"required"`

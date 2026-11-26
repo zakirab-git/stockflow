@@ -21,6 +21,7 @@ type ProductRepo interface {
 	GetStockForUpdate(c context.Context, productID int) (stock int, err error)
 	AddMovement(c context.Context, m model.StockMovement) (created model.StockMovement, err error)
 	UpdateStock(c context.Context, productID int, stock int) error
+	GetMovements(c context.Context, productID int) (movements []model.StockMovement, err error)
 }
 
 type ProductUsecase struct {
@@ -145,4 +146,17 @@ func (uc *ProductUsecase) UpdateStock(c context.Context, productID int, req dto.
 	})
 
 	return res, available, err
+}
+
+func (uc *ProductUsecase) GetProductMovement(c context.Context, productID int) (res []dto.MovementResponse, err error) {
+	movements, err := uc.repo.GetMovements(c, productID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range movements {
+		res = append(res, dto.MovementFromModel(m))
+	}
+
+	return res, nil
 }
