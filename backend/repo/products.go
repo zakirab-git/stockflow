@@ -58,6 +58,9 @@ const (
 		WHERE id = $1
 		RETURNING id, sku, name, price, stock, is_active, created_at
 	`
+	deleteProductQuery = `
+		DELETE FROM products WHERE id = $1
+	`
 )
 
 func (r *ProductRepo) GetProducts(c context.Context, filter ProductFilter) (products []model.Product, total int, err error) {
@@ -105,4 +108,9 @@ func (r *ProductRepo) UpdateProduct(c context.Context, p model.Product) (updated
 
 	err = getter.GetContext(c, &updated, updateProductQuery, p.ID, p.Name, p.Price, p.Stock, p.IsActive)
 	return updated, err
+}
+
+func (r *ProductRepo) DeleteProduct(c context.Context, id int) error {
+	_, err := r.db.ExecContext(c, deleteProductQuery, id)
+	return err
 }

@@ -13,6 +13,7 @@ type ProductUsecase interface {
 	GetProducts(c context.Context, data dto.ProductListRequest) (res dto.ProductListResponse, err error)
 	AddProduct(c context.Context, req dto.AddProductRequest) (res dto.ProductResponse, err error)
 	UpdateProduct(c context.Context, id int, req dto.UpdateProductRequest) (res dto.ProductResponse, err error)
+	DeleteProduct(c context.Context, id int) error
 }
 
 type Handlers struct {
@@ -93,4 +94,23 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, product)
+}
+
+func (h *ProductHandler) DeleteProduct(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
+
+	if err := h.usecase.DeleteProduct(c.Request.Context(), id); err != nil {
+		if err.Error() == "PRODUCT_HAS_HISTORY" {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"code": "PRODUCT_HAS_HISTORY"}})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

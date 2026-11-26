@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/zakirab-git/stockflow/dto"
 	"github.com/zakirab-git/stockflow/model"
@@ -15,6 +16,7 @@ type ProductRepo interface {
 	SKUExists(c context.Context, sku string) (exists bool, err error)
 	AddProduct(c context.Context, p model.Product) (created model.Product, err error)
 	UpdateProduct(c context.Context, p model.Product) (updated model.Product, err error)
+	DeleteProduct(c context.Context, id int) error
 }
 
 type ProductUsecase struct {
@@ -87,4 +89,13 @@ func (uc *ProductUsecase) UpdateProduct(c context.Context, id int, req dto.Updat
 		return dto.ProductResponse{}, err
 	}
 	return dto.ProductFromModel(updated), nil
+}
+
+func (uc *ProductUsecase) DeleteProduct(c context.Context, id int) error {
+	err := uc.repo.DeleteProduct(c, id)
+	if err != nil && strings.Contains(err.Error(), "SQLSTATE 23503") {
+		return errors.New("PRODUCT_HAS_HISTORY")
+	}
+
+	return err
 }

@@ -17,6 +17,7 @@ func SetupRouter(cfg config.Config, h *handler.Handlers) *gin.Engine {
 			products.GET("", h.Product.GetProducts)
 			products.POST("", h.Product.AddProduct)
 			products.PUT("/:id", h.Product.UpdateProduct)
+			products.DELETE("/:id", h.Product.DeleteProduct)
 		}
 	}
 
