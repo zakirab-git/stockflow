@@ -20,10 +20,11 @@ type ProductUsecase interface {
 
 type Handlers struct {
 	Product *ProductHandler
+	Order   *OrderHandler
 }
 
-func NewHandlers(product *ProductHandler) *Handlers {
-	return &Handlers{Product: product}
+func NewHandlers(product *ProductHandler, order *OrderHandler) *Handlers {
+	return &Handlers{Product: product, Order: order}
 }
 
 type ProductHandler struct {

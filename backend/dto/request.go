@@ -28,3 +28,13 @@ type UpdateStockRequest struct {
 	Qty  int    `json:"qty" binding:"required,min=1"`
 	Note string `json:"note"`
 }
+
+type OrderItemRequest struct {
+	SKU string `json:"sku" binding:"required"`
+	Qty int    `json:"qty" binding:"required,min=1"`
+}
+
+type CreateOrderRequest struct {
+	Customer string             `json:"customer" binding:"required"`
+	Items    []OrderItemRequest `json:"items" binding:"required,min=1"`
+}

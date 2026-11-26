@@ -51,3 +51,17 @@ func MovementFromModel(m model.StockMovement) MovementResponse {
 		CreatedAt: m.CreatedAt,
 	}
 }
+
+type OrderItemResponse struct {
+	SKU       string `json:"sku"`
+	Qty       int    `json:"qty"`
+	UnitPrice int    `json:"unit_price"`
+}
+
+type OrderResponse struct {
+	ID        int                 `json:"id"`
+	Customer  string              `json:"customer"`
+	Items     []OrderItemResponse `json:"items"`
+	Total     int                 `json:"total"`
+	CreatedAt time.Time           `json:"created_at"`
+}

@@ -21,3 +21,19 @@ type StockMovement struct {
 	Note      string    `db:"note" json:"note"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
+
+type Order struct {
+	ID        int       `db:"id" json:"id"`
+	Customer  string    `db:"customer" json:"customer"`
+	Total     int       `db:"total" json:"total"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+
+type OrderItem struct {
+	ID        int    `db:"id" json:"id"`
+	OrderID   int    `db:"order_id" json:"order_id"`
+	ProductID int    `db:"product_id" json:"product_id"`
+	SKU       string `db:"sku" json:"sku"`
+	Qty       int    `db:"qty" json:"qty"`
+	UnitPrice int    `db:"unit_price" json:"unit_price"`
+}

@@ -35,9 +35,15 @@ func initDB(cfg config.Config) *sqlx.DB {
 }
 
 func initHandlers(db *sqlx.DB) *handler.Handlers {
+	txM := utils.NewTxM(db)
+
 	productRepo := repo.NewProductRepo(db)
-	productUsecase := usecase.NewProductUsecase(productRepo, utils.NewTxM(db))
+	productUsecase := usecase.NewProductUsecase(productRepo, txM)
 	productHandler := handler.NewProductHandler(productUsecase)
 
-	return handler.NewHandlers(productHandler)
+	orderRepo := repo.NewOrderRepo(db)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo, txM)
+	orderHandler := handler.NewOrderHandler(orderUsecase)
+
+	return handler.NewHandlers(productHandler, orderHandler)
 }
