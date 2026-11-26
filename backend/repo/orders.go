@@ -2,8 +2,10 @@ package repo
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zakirab-git/stockflow/apperrors"
 	"github.com/zakirab-git/stockflow/model"
 	"github.com/zakirab-git/stockflow/utils"
 )
@@ -33,7 +35,7 @@ const (
 		VALUES ($1, $2, $3, $4)
 	`
 	decrementStockQuery = `
-		UPDATE products SET stock = stock - $2 WHERE id = $1
+		UPDATE products SET stock = stock - $2 WHERE id = $1 AND stock >= $2
 	`
 	getOrderByIDQuery = `
 		SELECT id, customer, total, status, created_at
@@ -58,6 +60,8 @@ const (
 		UPDATE products SET stock = stock + $2 WHERE sku = $1
 	`
 )
+
+var ErrProductSKUNotFound = errors.New("product sku not found")
 
 func (r *OrderRepo) GetProductBySKUForUpdate(c context.Context, sku string) (p model.Product, err error) {
 	getter := utils.Getter(r.db)
@@ -94,8 +98,18 @@ func (r *OrderRepo) DecrementStock(c context.Context, productID int, qty int) er
 	if tx := utils.ExtractTx(c); tx != nil {
 		getter = tx
 	}
-	_, err := getter.ExecContext(c, decrementStockQuery, productID, qty)
-	return err
+	res, err := getter.ExecContext(c, decrementStockQuery, productID, qty)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return apperrors.ErrInsufficientStock
+	}
+	return nil
 }
 
 func (r *OrderRepo) GetOrderByID(c context.Context, id int) (o model.Order, err error) {
@@ -139,6 +153,16 @@ func (r *OrderRepo) RestoreStock(c context.Context, sku string, qty int) error {
 		getter = tx
 	}
 
-	_, err := getter.ExecContext(c, restoreStockQuery, sku, qty)
-	return err
+	res, err := getter.ExecContext(c, restoreStockQuery, sku, qty)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrProductSKUNotFound
+	}
+	return nil
 }

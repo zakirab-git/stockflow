@@ -54,7 +54,7 @@ const (
 	`
 	updateProductQuery = `
 		UPDATE products
-		SET name = $2, price = $3, stock = $4, is_active = $5
+		SET name = $2, price = $3, is_active = $4
 		WHERE id = $1
 		RETURNING id, sku, name, price, stock, is_active, created_at
 	`
@@ -123,7 +123,7 @@ func (r *ProductRepo) UpdateProduct(c context.Context, p model.Product) (updated
 		getter = tx
 	}
 
-	err = getter.GetContext(c, &updated, updateProductQuery, p.ID, p.Name, p.Price, p.Stock, p.IsActive)
+	err = getter.GetContext(c, &updated, updateProductQuery, p.ID, p.Name, p.Price, p.IsActive)
 	return updated, err
 }
 

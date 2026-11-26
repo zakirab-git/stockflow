@@ -32,7 +32,7 @@ func NewTxM(db *sqlx.DB) *TransactionxManager {
 
 type TxxFn func(context.Context) error
 
-func (txM *TransactionxManager) WithTxM(ctx context.Context, fn TxxFn) error {
+func (txM *TransactionxManager) WithTxM(ctx context.Context, fn TxxFn) (err error) {
 	tx, err := txM.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
@@ -41,10 +41,10 @@ func (txM *TransactionxManager) WithTxM(ctx context.Context, fn TxxFn) error {
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(p)
 		} else if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 		} else {
 			err = tx.Commit()
 		}

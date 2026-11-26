@@ -19,7 +19,6 @@ type AddProductRequest struct {
 type UpdateProductRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Price    int    `json:"price" binding:"min=0"`
-	Stock    int    `json:"stock" binding:"min=0"`
 	IsActive bool   `json:"is_active"`
 }
 

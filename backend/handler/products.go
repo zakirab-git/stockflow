@@ -2,10 +2,12 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zakirab-git/stockflow/apperrors"
 	"github.com/zakirab-git/stockflow/dto"
 )
 
@@ -108,7 +110,7 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 
 	if err := h.usecase.DeleteProduct(c.Request.Context(), id); err != nil {
 		if err.Error() == "PRODUCT_HAS_HISTORY" {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"code": "PRODUCT_HAS_HISTORY"}})
+			writeAPIError(c, http.StatusConflict, dto.APIErrorBody{Code: "PRODUCT_HAS_HISTORY"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -132,8 +134,11 @@ func (h *ProductHandler) UpdateStock(c *gin.Context) {
 
 	movement, available, err := h.usecase.UpdateStock(c.Request.Context(), id, req)
 	if err != nil {
-		if err.Error() == "INSUFFICIENT_STOCK" {
-			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"code": "INSUFFICIENT_STOCK", "available": available}})
+		if errors.Is(err, apperrors.ErrInsufficientStock) {
+			writeAPIError(c, http.StatusConflict, dto.APIErrorBody{
+				Code:      "INSUFFICIENT_STOCK",
+				Available: &available,
+			})
 			return
 		}
 		if err.Error() == "product not found" {

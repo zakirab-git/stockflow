@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/zakirab-git/stockflow/apperrors"
 	"github.com/zakirab-git/stockflow/dto"
 	"github.com/zakirab-git/stockflow/model"
 	"github.com/zakirab-git/stockflow/repo"
@@ -46,12 +47,13 @@ func (uc *ProductUsecase) GetProducts(c context.Context, req dto.ProductListRequ
 	res.Page = req.Page
 	res.Limit = req.Limit
 	res.Total = total
+	res.Data = make([]dto.ProductResponse, 0, len(products))
 	if total > 0 {
 		res.TotalPages = (total + req.Limit - 1) / req.Limit
 	}
 
 	for _, p := range products {
-		res.Products = append(res.Products, dto.ProductFromModel(p))
+		res.Data = append(res.Data, dto.ProductFromModel(p))
 	}
 
 	return res, nil
@@ -85,7 +87,6 @@ func (uc *ProductUsecase) UpdateProduct(c context.Context, id int, req dto.Updat
 		ID:       id,
 		Name:     req.Name,
 		Price:    req.Price,
-		Stock:    req.Stock,
 		IsActive: req.IsActive,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
@@ -123,7 +124,7 @@ func (uc *ProductUsecase) UpdateStock(c context.Context, productID int, req dto.
 			newStock = stock - req.Qty
 			if newStock < 0 {
 				available = stock
-				return errors.New("INSUFFICIENT_STOCK")
+				return apperrors.ErrInsufficientStock
 			}
 		}
 

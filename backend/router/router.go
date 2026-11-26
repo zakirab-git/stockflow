@@ -4,11 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zakirab-git/stockflow/config"
 	"github.com/zakirab-git/stockflow/handler"
+	"github.com/zakirab-git/stockflow/middleware"
 )
 
 func SetupRouter(cfg config.Config, h *handler.Handlers) *gin.Engine {
 	r := gin.New()
-	r.Use(gin.Logger(), gin.Recovery())
+	r.Use(gin.Logger(), gin.Recovery(), middleware.CORSMiddleware())
 
 	root := r.Group("/api")
 	{

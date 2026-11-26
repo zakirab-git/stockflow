@@ -7,19 +7,21 @@ import (
 )
 
 type ProductResponse struct {
-	ID    int    `json:"id"`
-	SKU   string `json:"sku"`
-	Name  string `json:"name"`
-	Price int    `json:"price"`
-	Stock int    `json:"stock"`
+	ID             int        `json:"id"`
+	SKU            string     `json:"sku"`
+	Name           string     `json:"name"`
+	Price          int        `json:"price"`
+	Stock          int        `json:"stock"`
+	IsActive       bool       `json:"is_active"`
+	LastMovementAt *time.Time `json:"last_movement_at"`
 }
 
 type ProductListResponse struct {
-	Products   []ProductResponse `json:"products"`
+	Data       []ProductResponse `json:"data"`
 	Page       int               `json:"page"`
 	Limit      int               `json:"limit"`
 	Total      int               `json:"total"`
-	TotalPages int               `json:"total_pages"`
+	TotalPages int               `json:"total_pages,omitempty"`
 }
 
 type MovementResponse struct {
@@ -46,17 +48,17 @@ type OrderResponse struct {
 	CreatedAt time.Time           `json:"created_at"`
 }
 
-// -----------------------------------------------------------------------------
-// Mapping functions (entity -> response DTO)
-// -----------------------------------------------------------------------------
+// mappings
 
 func ProductFromModel(p model.Product) ProductResponse {
 	return ProductResponse{
-		ID:    p.ID,
-		SKU:   p.SKU,
-		Name:  p.Name,
-		Price: p.Price,
-		Stock: p.Stock,
+		ID:             p.ID,
+		SKU:            p.SKU,
+		Name:           p.Name,
+		Price:          p.Price,
+		Stock:          p.Stock,
+		IsActive:       p.IsActive,
+		LastMovementAt: p.LastMovementAt,
 	}
 }
 

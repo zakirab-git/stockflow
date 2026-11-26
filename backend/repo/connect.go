@@ -9,7 +9,7 @@ import (
 )
 
 func Connect(cfg config.DatabaseConfig) (*sqlx.DB, error) {
-	connectStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name)
+	connectStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name)
 
 	db, err := sqlx.Open("pgx", connectStr)
 	if err != nil {
