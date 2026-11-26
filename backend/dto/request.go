@@ -20,3 +20,9 @@ type UpdateProductRequest struct {
 	Stock    int    `json:"stock" binding:"min=0"`
 	IsActive bool   `json:"is_active"`
 }
+
+type UpdateStockRequest struct {
+	Type string `json:"type" binding:"required,oneof=in out"`
+	Qty  int    `json:"qty" binding:"required,min=1"`
+	Note string `json:"note"`
+}

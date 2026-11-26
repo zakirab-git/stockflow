@@ -9,6 +9,7 @@ import (
 	"github.com/zakirab-git/stockflow/dto"
 	"github.com/zakirab-git/stockflow/model"
 	"github.com/zakirab-git/stockflow/repo"
+	"github.com/zakirab-git/stockflow/utils"
 )
 
 type ProductRepo interface {
@@ -17,14 +18,18 @@ type ProductRepo interface {
 	AddProduct(c context.Context, p model.Product) (created model.Product, err error)
 	UpdateProduct(c context.Context, p model.Product) (updated model.Product, err error)
 	DeleteProduct(c context.Context, id int) error
+	GetStockForUpdate(c context.Context, productID int) (stock int, err error)
+	AddMovement(c context.Context, m model.StockMovement) (created model.StockMovement, err error)
+	UpdateStock(c context.Context, productID int, stock int) error
 }
 
 type ProductUsecase struct {
 	repo ProductRepo
+	txM  utils.TransactionxManagerInterface
 }
 
-func NewProductUsecase(rp ProductRepo) *ProductUsecase {
-	return &ProductUsecase{repo: rp}
+func NewProductUsecase(rp ProductRepo, txM utils.TransactionxManagerInterface) *ProductUsecase {
+	return &ProductUsecase{repo: rp, txM: txM}
 }
 
 func (uc *ProductUsecase) GetProducts(c context.Context, req dto.ProductListRequest) (res dto.ProductListResponse, err error) {
@@ -98,4 +103,46 @@ func (uc *ProductUsecase) DeleteProduct(c context.Context, id int) error {
 	}
 
 	return err
+}
+
+func (uc *ProductUsecase) UpdateStock(c context.Context, productID int, req dto.UpdateStockRequest) (res dto.MovementResponse, available int, err error) {
+	err = uc.txM.WithTxM(c, func(ctx context.Context) error {
+		// Get stock
+		stock, err := uc.repo.GetStockForUpdate(ctx, productID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("product not found")
+		}
+		if err != nil {
+			return err
+		}
+
+		//Check if overdraw
+		newStock := stock + req.Qty
+		if req.Type == "out" {
+			newStock = stock - req.Qty
+			if newStock < 0 {
+				available = stock
+				return errors.New("INSUFFICIENT_STOCK")
+			}
+		}
+
+		movement, err := uc.repo.AddMovement(ctx, model.StockMovement{
+			ProductID: productID,
+			Type:      req.Type,
+			Qty:       req.Qty,
+			Note:      req.Note,
+		})
+		if err != nil {
+			return err
+		}
+
+		if err := uc.repo.UpdateStock(ctx, productID, newStock); err != nil {
+			return err
+		}
+
+		res = dto.MovementFromModel(movement)
+		return nil
+	})
+
+	return res, available, err
 }

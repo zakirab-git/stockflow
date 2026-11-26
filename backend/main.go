@@ -10,6 +10,7 @@ import (
 	"github.com/zakirab-git/stockflow/router"
 	"github.com/zakirab-git/stockflow/server"
 	"github.com/zakirab-git/stockflow/usecase"
+	"github.com/zakirab-git/stockflow/utils"
 )
 
 func main() {
@@ -35,7 +36,7 @@ func initDB(cfg config.Config) *sqlx.DB {
 
 func initHandlers(db *sqlx.DB) *handler.Handlers {
 	productRepo := repo.NewProductRepo(db)
-	productUsecase := usecase.NewProductUsecase(productRepo)
+	productUsecase := usecase.NewProductUsecase(productRepo, utils.NewTxM(db))
 	productHandler := handler.NewProductHandler(productUsecase)
 
 	return handler.NewHandlers(productHandler)

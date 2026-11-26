@@ -14,6 +14,7 @@ type ProductUsecase interface {
 	AddProduct(c context.Context, req dto.AddProductRequest) (res dto.ProductResponse, err error)
 	UpdateProduct(c context.Context, id int, req dto.UpdateProductRequest) (res dto.ProductResponse, err error)
 	DeleteProduct(c context.Context, id int) error
+	UpdateStock(c context.Context, id int, req dto.UpdateStockRequest) (res dto.MovementResponse, available int, err error)
 }
 
 type Handlers struct {
@@ -113,4 +114,32 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *ProductHandler) UpdateStock(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
+	var req dto.UpdateStockRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	movement, available, err := h.usecase.UpdateStock(c.Request.Context(), id, req)
+	if err != nil {
+		if err.Error() == "INSUFFICIENT_STOCK" {
+			c.JSON(http.StatusConflict, gin.H{"error": gin.H{"code": "INSUFFICIENT_STOCK", "available": available}})
+			return
+		}
+		if err.Error() == "product not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, movement)
 }

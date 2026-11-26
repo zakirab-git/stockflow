@@ -61,6 +61,17 @@ const (
 	deleteProductQuery = `
 		DELETE FROM products WHERE id = $1
 	`
+	getStockForUpdateQuery = `
+		SELECT stock FROM products WHERE id = $1 FOR UPDATE
+	`
+	addMovementQuery = `
+		INSERT INTO stock_movements (product_id, type, qty, note)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, product_id, type, qty, note, created_at
+	`
+	updateStockQuery = `
+		UPDATE products SET stock = $2 WHERE id = $1
+	`
 )
 
 func (r *ProductRepo) GetProducts(c context.Context, filter ProductFilter) (products []model.Product, total int, err error) {
@@ -112,5 +123,34 @@ func (r *ProductRepo) UpdateProduct(c context.Context, p model.Product) (updated
 
 func (r *ProductRepo) DeleteProduct(c context.Context, id int) error {
 	_, err := r.db.ExecContext(c, deleteProductQuery, id)
+	return err
+}
+
+func (r *ProductRepo) GetStockForUpdate(c context.Context, productID int) (stock int, err error) {
+	getter := utils.Getter(r.db)
+	if tx := utils.ExtractTx(c); tx != nil {
+		getter = tx
+	}
+
+	err = getter.GetContext(c, &stock, getStockForUpdateQuery, productID)
+	return stock, err
+}
+
+func (r *ProductRepo) AddMovement(c context.Context, m model.StockMovement) (created model.StockMovement, err error) {
+	getter := utils.Getter(r.db)
+	if tx := utils.ExtractTx(c); tx != nil {
+		getter = tx
+	}
+
+	err = getter.GetContext(c, &created, addMovementQuery, m.ProductID, m.Type, m.Qty, m.Note)
+	return created, err
+}
+
+func (r *ProductRepo) UpdateStock(c context.Context, productID int, stock int) error {
+	getter := utils.Getter(r.db)
+	if tx := utils.ExtractTx(c); tx != nil {
+		getter = tx
+	}
+	_, err := getter.ExecContext(c, updateStockQuery, productID, stock)
 	return err
 }
