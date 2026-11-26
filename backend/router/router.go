@@ -15,6 +15,8 @@ func SetupRouter(cfg config.Config, h *handler.Handlers) *gin.Engine {
 		products := root.Group("/products")
 		{
 			products.GET("", h.Product.GetProducts)
+			products.POST("", h.Product.AddProduct)
+			products.PUT("/:id", h.Product.UpdateProduct)
 		}
 	}
 

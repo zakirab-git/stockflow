@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/zakirab-git/stockflow/dto"
 	"github.com/zakirab-git/stockflow/model"
@@ -10,6 +12,9 @@ import (
 
 type ProductRepo interface {
 	GetProducts(c context.Context, filter repo.ProductFilter) (products []model.Product, total int, err error)
+	SKUExists(c context.Context, sku string) (exists bool, err error)
+	AddProduct(c context.Context, p model.Product) (created model.Product, err error)
+	UpdateProduct(c context.Context, p model.Product) (updated model.Product, err error)
 }
 
 type ProductUsecase struct {
@@ -42,4 +47,44 @@ func (uc *ProductUsecase) GetProducts(c context.Context, req dto.ProductListRequ
 	}
 
 	return res, nil
+}
+
+func (uc *ProductUsecase) AddProduct(c context.Context, req dto.AddProductRequest) (res dto.ProductResponse, err error) {
+	exists, err := uc.repo.SKUExists(c, req.SKU)
+	if err != nil {
+		return dto.ProductResponse{}, err
+	}
+	if exists {
+		return dto.ProductResponse{}, errors.New("sku already exists")
+	}
+
+	created, err := uc.repo.AddProduct(c, model.Product{
+		SKU:      req.SKU,
+		Name:     req.Name,
+		Price:    req.Price,
+		Stock:    req.Stock,
+		IsActive: req.IsActive,
+	})
+	if err != nil {
+		return dto.ProductResponse{}, err
+	}
+
+	return dto.ProductFromModel(created), nil
+}
+
+func (uc *ProductUsecase) UpdateProduct(c context.Context, id int, req dto.UpdateProductRequest) (res dto.ProductResponse, err error) {
+	updated, err := uc.repo.UpdateProduct(c, model.Product{
+		ID:       id,
+		Name:     req.Name,
+		Price:    req.Price,
+		Stock:    req.Stock,
+		IsActive: req.IsActive,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return dto.ProductResponse{}, errors.New("product not found")
+	}
+	if err != nil {
+		return dto.ProductResponse{}, err
+	}
+	return dto.ProductFromModel(updated), nil
 }

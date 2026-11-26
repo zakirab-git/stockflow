@@ -44,6 +44,20 @@ const (
 		FROM products p
 		WHERE ($1::text IS NULL OR p.name ILIKE '%' || $1 || '%' OR p.sku ILIKE '%' || $1 || '%')
 	`
+	skuExistsQuery = `
+		SELECT EXISTS(SELECT 1 FROM products WHERE sku = $1)
+	`
+	addProductQuery = `
+		INSERT INTO products (sku, name, price, stock, is_active)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, sku, name, price, stock, is_active, created_at
+	`
+	updateProductQuery = `
+		UPDATE products
+		SET name = $2, price = $3, stock = $4, is_active = $5
+		WHERE id = $1
+		RETURNING id, sku, name, price, stock, is_active, created_at
+	`
 )
 
 func (r *ProductRepo) GetProducts(c context.Context, filter ProductFilter) (products []model.Product, total int, err error) {
@@ -61,4 +75,34 @@ func (r *ProductRepo) GetProducts(c context.Context, filter ProductFilter) (prod
 	}
 
 	return products, total, nil
+}
+
+func (r *ProductRepo) SKUExists(c context.Context, sku string) (exists bool, err error) {
+	getter := utils.Getter(r.db)
+	if tx := utils.ExtractTx(c); tx != nil {
+		getter = tx
+	}
+
+	err = getter.GetContext(c, &exists, skuExistsQuery, sku)
+	return exists, err
+}
+
+func (r *ProductRepo) AddProduct(c context.Context, p model.Product) (created model.Product, err error) {
+	getter := utils.Getter(r.db)
+	if tx := utils.ExtractTx(c); tx != nil {
+		getter = tx
+	}
+
+	err = getter.GetContext(c, &created, addProductQuery, p.SKU, p.Name, p.Price, p.Stock, p.IsActive)
+	return created, err
+}
+
+func (r *ProductRepo) UpdateProduct(c context.Context, p model.Product) (updated model.Product, err error) {
+	getter := utils.Getter(r.db)
+	if tx := utils.ExtractTx(c); tx != nil {
+		getter = tx
+	}
+
+	err = getter.GetContext(c, &updated, updateProductQuery, p.ID, p.Name, p.Price, p.Stock, p.IsActive)
+	return updated, err
 }
