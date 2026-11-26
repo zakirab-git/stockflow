@@ -1,3 +1,7 @@
 ﻿*.exe
 .env
+.env.*
+!.env.example
+**/.env.bak*
 node_modules/
+frontend/vite-project/@/
