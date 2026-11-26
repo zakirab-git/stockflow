@@ -33,7 +33,6 @@ type Order struct {
 type OrderItem struct {
 	ID        int    `db:"id" json:"id"`
 	OrderID   int    `db:"order_id" json:"order_id"`
-	ProductID int    `db:"product_id" json:"product_id"`
 	SKU       string `db:"sku" json:"sku"`
 	Qty       int    `db:"qty" json:"qty"`
 	UnitPrice int    `db:"unit_price" json:"unit_price"`

@@ -67,13 +67,13 @@ const (
 	addMovementQuery = `
 		INSERT INTO stock_movements (product_id, type, qty, note)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, product_id, type, qty, note, created_at
+		RETURNING id, product_id, type, qty, COALESCE(note, '') AS note, created_at
 	`
 	updateStockQuery = `
 		UPDATE products SET stock = $2 WHERE id = $1
 	`
 	getMovementsQuery = `
-		SELECT id, product_id, type, qty, note, created_at
+		SELECT id, product_id, type, qty, COALESCE(note, '') AS note, created_at
 		FROM stock_movements
 		WHERE product_id = $1
 		ORDER BY created_at DESC

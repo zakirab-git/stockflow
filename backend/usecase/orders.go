@@ -18,8 +18,8 @@ type OrderRepo interface {
 	GetOrderByID(c context.Context, id int) (o model.Order, err error)
 	GetOrderByIDForUpdate(c context.Context, id int) (o model.Order, err error)
 	GetOrderItems(c context.Context, orderID int) (items []model.OrderItem, err error)
-	UpdateOrderStatus(c context.Context, id int, status string) error
-	RestoreStock(c context.Context, productID int, qty int) error
+	CancelOrder(c context.Context, id int) error
+	RestoreStock(c context.Context, sku string, qty int) error
 }
 
 type OrderUsecase struct {
@@ -68,7 +68,6 @@ func (uc *OrderUsecase) CreateOrder(c context.Context, req dto.CreateOrderReques
 
 			if err := uc.repo.AddOrderItem(ctx, model.OrderItem{
 				OrderID:   order.ID,
-				ProductID: p.ID,
 				SKU:       p.SKU,
 				Qty:       item.Qty,
 				UnitPrice: p.Price,
@@ -125,7 +124,7 @@ func (uc *OrderUsecase) CancelOrder(c context.Context, id int) (res dto.OrderRes
 		if err != nil {
 			return err
 		}
-		if order.Status == "cancelled" {
+		if order.Status == "CANCELLED" {
 			return errors.New("ORDER_ALREADY_CANCELLED")
 		}
 
@@ -135,16 +134,16 @@ func (uc *OrderUsecase) CancelOrder(c context.Context, id int) (res dto.OrderRes
 		}
 
 		for _, item := range items {
-			if err := uc.repo.RestoreStock(ctx, item.ProductID, item.Qty); err != nil {
+			if err := uc.repo.RestoreStock(ctx, item.SKU, item.Qty); err != nil {
 				return err
 			}
 		}
 
-		if err := uc.repo.UpdateOrderStatus(ctx, id, "cancelled"); err != nil {
+		if err := uc.repo.CancelOrder(ctx, id); err != nil {
 			return err
 		}
 
-		order.Status = "cancelled"
+		order.Status = "CANCELLED"
 		res = orderToResponse(order)
 		for _, item := range items {
 			res.Items = append(res.Items, orderItemToResponse(item))
