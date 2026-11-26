@@ -25,6 +25,8 @@ func SetupRouter(cfg config.Config, h *handler.Handlers) *gin.Engine {
 		orders := root.Group("/orders")
 		{
 			orders.POST("", h.Order.CreateOrder)
+			orders.GET("/:id", h.Order.GetOrder)
+			orders.POST("/:id/cancel", h.Order.CancelOrder)
 		}
 	}
 

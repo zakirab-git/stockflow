@@ -22,16 +22,6 @@ type ProductListResponse struct {
 	TotalPages int               `json:"total_pages"`
 }
 
-func ProductFromModel(p model.Product) ProductResponse {
-	return ProductResponse{
-		ID:    p.ID,
-		SKU:   p.SKU,
-		Name:  p.Name,
-		Price: p.Price,
-		Stock: p.Stock,
-	}
-}
-
 type MovementResponse struct {
 	ID        int       `json:"id"`
 	ProductID int       `json:"product_id"`
@@ -39,17 +29,6 @@ type MovementResponse struct {
 	Qty       int       `json:"qty"`
 	Note      string    `json:"note"`
 	CreatedAt time.Time `json:"created_at"`
-}
-
-func MovementFromModel(m model.StockMovement) MovementResponse {
-	return MovementResponse{
-		ID:        m.ID,
-		ProductID: m.ProductID,
-		Type:      m.Type,
-		Qty:       m.Qty,
-		Note:      m.Note,
-		CreatedAt: m.CreatedAt,
-	}
 }
 
 type OrderItemResponse struct {
@@ -63,5 +42,31 @@ type OrderResponse struct {
 	Customer  string              `json:"customer"`
 	Items     []OrderItemResponse `json:"items"`
 	Total     int                 `json:"total"`
+	Status    string              `json:"status"`
 	CreatedAt time.Time           `json:"created_at"`
+}
+
+// -----------------------------------------------------------------------------
+// Mapping functions (entity -> response DTO)
+// -----------------------------------------------------------------------------
+
+func ProductFromModel(p model.Product) ProductResponse {
+	return ProductResponse{
+		ID:    p.ID,
+		SKU:   p.SKU,
+		Name:  p.Name,
+		Price: p.Price,
+		Stock: p.Stock,
+	}
+}
+
+func MovementFromModel(m model.StockMovement) MovementResponse {
+	return MovementResponse{
+		ID:        m.ID,
+		ProductID: m.ProductID,
+		Type:      m.Type,
+		Qty:       m.Qty,
+		Note:      m.Note,
+		CreatedAt: m.CreatedAt,
+	}
 }

@@ -26,6 +26,7 @@ type Order struct {
 	ID        int       `db:"id" json:"id"`
 	Customer  string    `db:"customer" json:"customer"`
 	Total     int       `db:"total" json:"total"`
+	Status    string    `db:"status" json:"status"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 

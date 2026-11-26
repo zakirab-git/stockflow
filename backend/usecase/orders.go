@@ -15,6 +15,11 @@ type OrderRepo interface {
 	CreateOrder(c context.Context, o model.Order) (created model.Order, err error)
 	AddOrderItem(c context.Context, item model.OrderItem) error
 	DecrementStock(c context.Context, productID int, qty int) error
+	GetOrderByID(c context.Context, id int) (o model.Order, err error)
+	GetOrderByIDForUpdate(c context.Context, id int) (o model.Order, err error)
+	GetOrderItems(c context.Context, orderID int) (items []model.OrderItem, err error)
+	UpdateOrderStatus(c context.Context, id int, status string) error
+	RestoreStock(c context.Context, productID int, qty int) error
 }
 
 type OrderUsecase struct {
@@ -81,9 +86,92 @@ func (uc *OrderUsecase) CreateOrder(c context.Context, req dto.CreateOrderReques
 		res.ID = order.ID
 		res.Customer = order.Customer
 		res.Total = order.Total
+		res.Status = order.Status
 		res.CreatedAt = order.CreatedAt
 		return nil
 	})
 
 	return res, conflictSKU, available, err
+}
+
+func (uc *OrderUsecase) GetOrder(c context.Context, id int) (res dto.OrderResponse, err error) {
+	order, err := uc.repo.GetOrderByID(c, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return res, errors.New("order not found")
+	}
+	if err != nil {
+		return res, err
+	}
+
+	items, err := uc.repo.GetOrderItems(c, id)
+	if err != nil {
+		return res, err
+	}
+
+	res = orderToResponse(order)
+	for _, item := range items {
+		res.Items = append(res.Items, orderItemToResponse(item))
+	}
+
+	return res, nil
+}
+
+func (uc *OrderUsecase) CancelOrder(c context.Context, id int) (res dto.OrderResponse, err error) {
+	err = uc.txM.WithTxM(c, func(ctx context.Context) error {
+		order, err := uc.repo.GetOrderByIDForUpdate(ctx, id)
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("order not found")
+		}
+		if err != nil {
+			return err
+		}
+		if order.Status == "cancelled" {
+			return errors.New("ORDER_ALREADY_CANCELLED")
+		}
+
+		items, err := uc.repo.GetOrderItems(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range items {
+			if err := uc.repo.RestoreStock(ctx, item.ProductID, item.Qty); err != nil {
+				return err
+			}
+		}
+
+		if err := uc.repo.UpdateOrderStatus(ctx, id, "cancelled"); err != nil {
+			return err
+		}
+
+		order.Status = "cancelled"
+		res = orderToResponse(order)
+		for _, item := range items {
+			res.Items = append(res.Items, orderItemToResponse(item))
+		}
+
+		return nil
+	})
+
+	return res, err
+}
+
+//mappings
+
+func orderToResponse(o model.Order) dto.OrderResponse {
+	return dto.OrderResponse{
+		ID:        o.ID,
+		Customer:  o.Customer,
+		Total:     o.Total,
+		Status:    o.Status,
+		CreatedAt: o.CreatedAt,
+	}
+}
+
+func orderItemToResponse(item model.OrderItem) dto.OrderItemResponse {
+	return dto.OrderItemResponse{
+		SKU:       item.SKU,
+		Qty:       item.Qty,
+		UnitPrice: item.UnitPrice,
+	}
 }
