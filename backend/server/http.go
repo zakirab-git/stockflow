@@ -23,6 +23,7 @@ func StartHTTPServer(h http.Handler, cfg config.AppConfig) {
 	defer stop()
 
 	go func() {
+		log.Printf("server listening on %s", server.Addr)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("server error: %v", err)
 			stop()

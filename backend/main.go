@@ -9,6 +9,7 @@ import (
 	"github.com/zakirab-git/stockflow/repo"
 	"github.com/zakirab-git/stockflow/router"
 	"github.com/zakirab-git/stockflow/server"
+	"github.com/zakirab-git/stockflow/usecase"
 )
 
 func main() {
@@ -17,10 +18,7 @@ func main() {
 	db := initDB(*cfg)
 	defer db.Close()
 
-	handlers, err := initHandlers(*cfg, db)
-	if err != nil {
-		log.Fatal(err)
-	}
+	handlers := initHandlers(db)
 
 	server.StartHTTPServer(router.SetupRouter(*cfg, handlers), cfg.App)
 
@@ -35,6 +33,10 @@ func initDB(cfg config.Config) *sqlx.DB {
 	return db
 }
 
-func initHandlers(cfg config.Config, db *sqlx.DB) (*handler.Handlers, error) {
-	return &handler.Handlers{}, nil
+func initHandlers(db *sqlx.DB) *handler.Handlers {
+	productRepo := repo.NewProductRepo(db)
+	productUsecase := usecase.NewProductUsecase(productRepo)
+	productHandler := handler.NewProductHandler(productUsecase)
+
+	return handler.NewHandlers(productHandler)
 }

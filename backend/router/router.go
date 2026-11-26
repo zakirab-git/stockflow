@@ -1,8 +1,6 @@
 package router
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/zakirab-git/stockflow/config"
 	"github.com/zakirab-git/stockflow/handler"
@@ -12,13 +10,11 @@ func SetupRouter(cfg config.Config, h *handler.Handlers) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 
-	root := r.Group("/api/v1")
+	root := r.Group("/api")
 	{
-		test := root.Group("/test")
+		products := root.Group("/products")
 		{
-			test.GET("", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"message": "pong"})
-			})
+			products.GET("", h.Product.GetProducts)
 		}
 	}
 
